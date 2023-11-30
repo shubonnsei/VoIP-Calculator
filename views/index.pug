@@ -1,0 +1,18 @@
+doctype html
+html
+  head
+    title VoIP Calculator
+  body
+    h1 VoIP R Value and MOS Calculator
+    form(action="/calculate" method="post")
+      div
+        label(for="latency") Latency (ms):
+        input(type="text" id="latency" name="latency")
+      div
+        label(for="jitter") Average Jitter (ms):
+        input(type="text" id="jitter" name="jitter")
+      div
+        label(for="packetLoss") Packet Loss (%):
+        input(type="text" id="packetLoss" name="packetLoss")
+      div
+        input(type="submit" value="Calculate")
