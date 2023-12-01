@@ -13,9 +13,9 @@ app.get('/', (req, res) => {
 });
 
 app.post('/calculate', (req, res) => {
-    const latency = parseFloat(req.body.latency);
-    const jitter = parseFloat(req.body.jitter);
-    const packetLoss = parseFloat(req.body.packetLoss);
+    const latency = parseFloat(req.body.latency) || 0;
+    const jitter = parseFloat(req.body.jitter) || 0;;
+    const packetLoss = parseFloat(req.body.packetLoss) || 0;
 
     const R = calculateRValue(latency, jitter, packetLoss);
     const MOS = calculateMOSValue(R);
@@ -23,12 +23,27 @@ app.post('/calculate', (req, res) => {
     res.render('result', { R, MOS });
 });
 
+
+// function calculateRValue(latency, jitter, packetLoss) {
+//     const R0 = 93.2;
+//     const Is = latency;
+//     const Id = jitter;
+//     const Ie = packetLoss * (packetLoss < 0.01 ? 75 : 25);
+//     return R0 - Is - Id - Ie;
+// }
 function calculateRValue(latency, jitter, packetLoss) {
     const R0 = 93.2;
-    const Is = latency;
-    const Id = jitter;
-    const Ie = packetLoss * (packetLoss < 0.01 ? 75 : 25);
-    return R0 - Is - Id - Ie;
+    // 遅延の影響、100msを超えるとR値が線形的に減少します
+    const Is = latency > 100 ? (latency - 100) / 50 : 0;
+    // ジッタの影響、ジッタ値を50で割ります
+    const Id = jitter / 50;
+    // パケットロスの影響、1%未満の場合は係数として60を使用し、それ以外の場合は40を使用します
+    const Ie = packetLoss * (packetLoss < 1 ? 60 : 40);
+    let R = R0 - Is - Id - Ie;
+
+    // R値が適切な範囲内にあることを保証します
+    R = Math.max(0, Math.min(R, 100));
+    return R;
 }
 
 function calculateMOSValue(R) {
